@@ -1,85 +1,86 @@
-var userFormEl = document.querySelector("#user-form");
-var nameInputEl = document.querySelector("#username");
-var repoContainerEl = document.querySelector("#repos-container");
-var repoSearchTerm = document.querySelector("#repo-search-term");
+var userFormEl = document.querySelector('#user-form');
+var nameInputEl = document.querySelector('#username');
+var repoContainerEl = document.querySelector('#repos-container');
+var repoSearchTerm = document.querySelector('#repo-search-term');
 
-// Function to take username input and send to getUserRepos function.
-var formSubmitHandler = function (event) {
+var formSubmitHandler = function(event) {
+  // prevent page from refreshing
   event.preventDefault();
+
+  // get value from input element
   var username = nameInputEl.value.trim();
 
   if (username) {
     getUserRepos(username);
-    nameInputEl.value = ""; //Clears form
+
+    // clear old content
+    repoContainerEl.textContent = '';
+    nameInputEl.value = '';
   } else {
-    alert("Please enter a github username");
+    alert('Please enter a GitHub username');
   }
 };
 
-// fetch github API, take username input in form and concatenate as user in api url
-var getUserRepos = function (user) {
-  var apiUrl = "https://api.github.com/users/" + user + "/repos";
-  // check if api returned any repos
-  if (repos.length === 0) {
-    repoContainerEl.textContent = "No repositories found.";
-    return;
-  }
+var getUserRepos = function(user) {
+  // format the github api url
+  var apiUrl = 'https://api.github.com/users/' + user + '/repos';
+
+  // make a get request to url
   fetch(apiUrl)
-    .then(function (response) {
+    .then(function(response) {
       // request was successful
       if (response.ok) {
-        response.json().then(function (data) {
+        console.log(response);
+        response.json().then(function(data) {
+          console.log(data);
           displayRepos(data, user);
         });
       } else {
-        alert("Error: GitHub User Not Found");
+        alert('Error: ' + response.statusText);
       }
     })
-    .catch(function (error) {
-      // Notice this `.catch()` getting chained onto the end of the `.then()` method
-      alert("Unable to connect to GitHub");
+    .catch(function(error) {
+      alert('Unable to connect to GitHub');
     });
 };
 
-// Event listener for sumbit button
-userFormEl.addEventListener("submit", formSubmitHandler);
-
-var displayRepos = function (repos, searchTerm) {
+var displayRepos = function(repos, searchTerm) {
+  // check if api returned any repos
+  if (repos.length === 0) {
+    repoContainerEl.textContent = 'No repositories found.';
+    return;
+  }
   console.log(repos);
   console.log(searchTerm);
-  // Clear previous search and display current search on html
-  repoContainerEl.textContent = "";
   repoSearchTerm.textContent = searchTerm;
 
   // loop over repos
   for (var i = 0; i < repos.length; i++) {
     // format repo name
-    var repoName = repos[i].owner.login + "/" + repos[i].name;
+    var repoName = repos[i].owner.login + '/' + repos[i].name;
 
     // create a container for each repo
-    var repoEl = document.createElement("div");
-    repoEl.classList = "list-item flex-row justify-space-between align-center";
-
+    var repoEl = document.createElement('a');
+    repoEl.classList = 'list-item flex-row justify-space-between align-center';
+    repoEl.setAttribute("href", "./single-repo.html?repo=" + repoName);
+    
     // create a span element to hold repository name
-    var titleEl = document.createElement("span");
+    var titleEl = document.createElement('span');
     titleEl.textContent = repoName;
 
     // append to container
     repoEl.appendChild(titleEl);
 
     // create a status element
-    var statusEl = document.createElement("span");
-    statusEl.classList = "flex-row align-center";
+    var statusEl = document.createElement('span');
+    statusEl.classList = 'flex-row align-center';
 
     // check if current repo has issues or not
     if (repos[i].open_issues_count > 0) {
       statusEl.innerHTML =
-        "<i class='fas fa-times status-icon icon-danger'></i>" +
-        repos[i].open_issues_count +
-        " issue(s)";
+        "<i class='fas fa-times status-icon icon-danger'></i>" + repos[i].open_issues_count + ' issue(s)';
     } else {
-      statusEl.innerHTML =
-        "<i class='fas fa-check-square status-icon icon-success'></i>";
+      statusEl.innerHTML = "<i class='fas fa-check-square status-icon icon-success'></i>";
     }
 
     // append to container
@@ -89,3 +90,6 @@ var displayRepos = function (repos, searchTerm) {
     repoContainerEl.appendChild(repoEl);
   }
 };
+
+// add event listeners to forms
+userFormEl.addEventListener('submit', formSubmitHandler);
